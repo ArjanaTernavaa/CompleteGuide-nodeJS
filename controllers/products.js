@@ -15,6 +15,8 @@ exports.postAddProduct = (req, res, next) => {
 
 
 exports.getProducts = (req,res,next)=>{ //nese perodorim metoda get, post ne vend te use atehere renditja nuk ka rendesi sepse e kerkon the exact path
-    const products = Product.fetchAll();
-    res.render('shop',{prods:products, docTitle:"Shop", path:"/", hasProducts:products.length > 0, activeShop:true, productCSS:true}); //e perdore the defualt templating engine, munesh me pass objekte qe masnej me mujt me i perdore ne template 
+    Product.fetchAll((products)=>{
+        res.render('shop',{prods:products, docTitle:"Shop", path:"/",
+         hasProducts:products.length > 0, activeShop:true, productCSS:true}); //e perdore the defualt templating engine, munesh me pass objekte qe masnej me mujt me i perdore ne template 
+    });
 }
