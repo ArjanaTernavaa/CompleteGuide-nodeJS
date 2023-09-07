@@ -3,25 +3,23 @@ const path = require('path');
 const express = require("express");
 const bodyParser = require("body-parser");
 
-const adminData = require("./routes/admin");
+const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
+const errors = require("./controllers/error");
+
+const app = express(); 
 
 
-const app = express(); //alot of logic is in the app, it handles routes dmth mujna me bo pass the create server 
+app.set('view engine', 'ejs'); 
+app.set('views','views');
 
-// app.engine('.hbs', expressHbs.engine({layoutsDir: 'views/layouts/', defaultLayout: 'main', extname: 'hbs'})); //register a engine that is not registered like handlebars
-app.set('view engine', 'ejs'); //match the name with the line above
-app.set('views','views'); //by default views jane located n views
+app.use(bodyParser.urlencoded({ extended: false })); 
+app.use(express.static(path.join(__dirname,'public')));
 
-app.use(bodyParser.urlencoded({ extended: false })); //me parse the body qe vjen nga ni request
-app.use(express.static(path.join(__dirname,'public'))) //i bon register static folders edhe requests masnej i dergon ktu
-
-app.use('/admin',adminData.routes);
+app.use('/admin',adminRoutes);
 app.use(shopRoutes);
 
-app.use((req,res,next)=>{
-    res.status(404).render('404',{docTitle:"Page not found", path:''});
-})
+app.use(errors.get404)
 
-app.listen(3000);
+app.listen(3001);
  
