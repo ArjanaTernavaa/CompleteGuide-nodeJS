@@ -1,11 +1,13 @@
-const express = require('express');
+const express = require("express");
 
-const productsController = require('../controllers/products');
+const adminController = require("../controllers/admin");
 
 const router = express.Router();
 
-router.get('/add-product',productsController.getAddProduct); //we dont execute this function, we just pass a reference to it
+router.get("/add-product", adminController.getAddProduct); //we dont execute this function, we just pass a reference to it
 
-router.post('/add-product',productsController.postAddProduct);
+router.post("/add-product", adminController.postAddProduct);
+
+router.get("/products",adminController.getProducts);
 
 module.exports = router;

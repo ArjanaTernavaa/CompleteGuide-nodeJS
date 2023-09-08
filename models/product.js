@@ -15,15 +15,21 @@ const getProductsFromFile = (cb) => {
 }
 
 module.exports = class Product {
-    constructor(title){
+    constructor(title,imageUrl, description, price){
         this.title = title; //creating a property in this class
+        this.imageUrl = imageUrl; //creating a property in this class
+        this.description = description; //creating a property in this class
+        this.price = price; //creating a property in this class
     }
 
-    save(){
-        //products.push(this);
-        getProductsFromFile(products => {
+    save() {
+        getProductsFromFile((products) => {
             products.push(this);
-            fs.writeFile(p, JSON.stringify(products), (err,fileContent)=>{console.log(err);});
+            fs.writeFile(p, JSON.stringify(products), (err) => {
+                if(err) {
+                    console.log(err);
+                }
+            })
         });
     }
 
