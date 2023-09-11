@@ -29,7 +29,7 @@ exports.getEditProduct = (req, res, next) => {
 	});
 };
 
-module.exports.postEditProduct = (req, res, next) => {
+exports.postEditProduct = (req, res, next) => {
     const product = new Product(
         req.body.id,
         req.body.title,

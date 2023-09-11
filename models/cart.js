@@ -52,6 +52,9 @@ module.exports = class Cart {
             }
                 const updatedCart = {...JSON.parse(fileContent)};
                 const product = updatedCart.products.find(prod => prod.id === id);
+                if(!product){
+                    return;
+                }
                 // const productQty = product.qty;
                 updatedCart.products = updatedCart.products.filter(prod => prod.id !== id);
                 updatedCart.totalPrice = updatedCart.totalPrice - productPrice * product.qty;
@@ -60,5 +63,39 @@ module.exports = class Cart {
         })
             }
         );  
+    }
+
+
+    // static deleteProduct(productId, productPrice) {
+    //     getCartFromFile(cart => {
+    //         if(cart.products.length > 0) {
+    //             let updatedProducts = [];
+    //             let count = 0;
+    //             for(let product of cart.products) {
+    //                 if(product.id === productId) {
+    //                     count = product.quantity;
+    //                     continue;
+    //                 }
+    //                 updatedProducts.push(product);
+    //             }
+    //             cart.products = updatedProducts;
+    //             cart.totalPrice -= productPrice * count;
+    //             fs.writeFile(cartDataDir, JSON.stringify(cart), err => {
+    //                 console.log(err);
+    //             });
+    //         }
+    //     });
+    // }
+
+    static getCart(cb){ //me thirr atehere kur i merr produktet
+        fs.readFile(p, (err, fileContent) => {
+            const cart = JSON.parse(fileContent);
+            if(err) {
+                cb(err);
+            } else {
+                cb(cart);    
+            }
+        
+        })
     }
 }
