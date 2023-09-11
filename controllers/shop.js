@@ -1,4 +1,5 @@
 const Product = require("../models/product");
+const Cart = require("../models/cart");
 
 exports.getProducts = (req, res, next) => {
 	//nese perodorim metoda get, post ne vend te use atehere renditja nuk ka rendesi sepse e kerkon the exact path
@@ -15,8 +16,8 @@ exports.getProducts = (req, res, next) => {
 };
 
 exports.getProduct = (req, res, next) => {
-	const prodId = req.params.productId;
-	Product.findById(prodId, product => {
+	const id = req.params.id;
+	Product.findById(id, (product) => {
 		res.render("shop/product-detail", {
 			product: product,
 			pageTitle: "Product Detail",
@@ -41,11 +42,13 @@ exports.getCart = (req, res, next) => {
 	res.render("shop/cart", { path: "/cart", pageTitle: "Your cart" });
 };
 
-exports.postCart = (req, res, next) => {
-	 const prodId = req.body.productId;
-	 console.log(prodId);
-	 res.redirect('/cart');
-}
+module.exports.postCart = (req, res, next) => {
+	const id = req.body.id;
+	Product.findById(id, (product) => {
+		Cart.addProduct(id, product.price);
+	});
+	res.redirect("/cart");
+};
 
 exports.getOrders = (req, res, next) => {
 	res.render("shop/orders", { path: "/orders", pageTitle: "Your orders" });
