@@ -10,13 +10,11 @@ exports.getAddProduct = (req, res, next) => {
 
 exports.getEditProduct = (req, res, next) => {
 	const editMode = req.query.edit;
-	console.log(editMode);
 	if (!editMode) {
 		return res.redirect("/");
 	}
 	const id = req.params.id;
 	Product.findById(id, (product) => {
-		console.log(product);
 		if (!product) {
 			return res.redirect("/");
 		}

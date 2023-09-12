@@ -10,8 +10,7 @@ const getProductsFromFile = (cb) => {
     fs.readFile(p, (err,fileContent)=>{
        if(err){
            return cb([]);
-       } 
-       console.log(fileContent);
+       }
        return cb(JSON.parse(fileContent));
    })
 
