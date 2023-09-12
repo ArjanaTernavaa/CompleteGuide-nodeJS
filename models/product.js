@@ -1,20 +1,5 @@
-const fs = require('fs');
-const path = require('path');
 
-const dirName = require('../util/path');
 const Cart = require('./cart')
-
-const p = path.join(dirName,'data','products.json');
-
-const getProductsFromFile = (cb) => {
-    fs.readFile(p, (err,fileContent)=>{
-       if(err){
-           return cb([]);
-       }
-       return cb(JSON.parse(fileContent));
-   })
-
-}
 
 module.exports = class Product {
     constructor(id, title,imageUrl, description, price){
