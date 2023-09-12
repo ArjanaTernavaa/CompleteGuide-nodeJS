@@ -2,40 +2,45 @@ const Product = require("../models/product");
 const Cart = require("../models/cart");
 
 exports.getProducts = (req, res, next) => {
-	//nese perodorim metoda get, post ne vend te use atehere renditja nuk ka rendesi sepse e kerkon the exact path
-	Product.fetchAll((products) => {
-		res.render("shop/product-list", {
-			prods: products,
-			pageTitle: "All products",
-			path: "/products",
-			hasProducts: products.length > 0,
-			activeShop: true,
-			productCSS: true,
-		}); //e perdore the defualt templating engine, munesh me pass objekte qe masnej me mujt me i perdore ne template
-	});
+	Product.fetchAll()
+		.then(([rows, fieldData]) => {
+			res.render("shop/product-list", {
+				prods: rows,
+				pageTitle: "All products",
+				path: "/products",
+				hasProducts: rows.length > 0,
+				activeShop: true,
+				productCSS: true,
+			}); //e perdore the defualt templating engine, munesh me pass objekte qe masnej me mujt me i perdore ne template
+		})
+		.catch((err) => console.log(err));
 };
 
 exports.getProduct = (req, res, next) => {
 	const id = req.params.id;
-	Product.findById(id, (product) => {
-		res.render("shop/product-detail", {
-			product: product,
-			pageTitle: "Product Detail",
-			path: "/products",
-			activeShop: true,
-			productCSS: true,
-		}); //e perdore the defualt templating engine, munesh me pass objekte qe masnej me mujt me i perdore ne template
-	});
+	Product.findById(id)
+		.then(([product]) => {
+			res.render("shop/product-detail", {
+				product: product[0], //view pret nje object 
+				pageTitle: "Product Detail",
+				path: "/products",
+				activeShop: true,
+				productCSS: true,
+			});
+		})
+		.catch((err) => console.log(err));
 };
 
 exports.getIndex = (req, res, next) => {
-	Product.fetchAll((products) => {
-		res.render("shop/index", {
-			prods: products,
-			pageTitle: "Shop",
-			path: "/",
-		}); //e perdore the defualt templating engine, munesh me pass objekte qe masnej me mujt me i perdore ne template
-	});
+	Product.fetchAll()
+		.then(([rows, fieldData]) => {
+			res.render("shop/index", {
+				prods: rows,
+				pageTitle: "Shop",
+				path: "/",
+			}); //e perdore the default templating engine, munesh me pass objekte qe masnej me mujt me i perdore ne template
+		})
+		.catch((err) => console.log(err));
 };
 
 exports.getCart = (req, res, next) => {
@@ -73,7 +78,7 @@ exports.postCart = (req, res, next) => {
 exports.postCartDeleteProduct = (req, res, next) => {
 	const id = req.body.id;
 	Product.findById(id, (product) => {
-		 if (!product) {
+		if (!product) {
 			console.log(`Product with ID ${id} not found.`);
 		} else {
 			// Product found, proceed with deleting it
