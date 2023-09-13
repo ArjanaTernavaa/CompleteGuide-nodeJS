@@ -15,8 +15,10 @@ router.post("/cart", shopController.postCart);
 
 router.get("/orders", shopController.getOrders);
 
-router.get("/checkout", shopController.getCheckout);
+router.post("/create-order", shopController.postOrder); //qekjo route duhet me kon e njejte me ata qe e jepim te action n html
 
-router.post('/cart-delete-item', shopController.postCartDeleteProduct)
+// router.get("/checkout", shopController.getCheckout);
+
+router.post("/cart-delete-item", shopController.postCartDeleteProduct);
 
 module.exports = router;

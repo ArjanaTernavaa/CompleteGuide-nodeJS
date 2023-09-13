@@ -14,8 +14,11 @@ exports.getEditProduct = (req, res, next) => {
 		return res.redirect("/");
 	}
 	const id = req.params.id;
-	Product.findByPk(id)
-		.then((product) => {
+
+	req.user
+		.getProducts({ where: { id: id } }) //get products na kthen array kshtu qe neve na vyn veq elementi i pare
+		.then((products) => {
+			const product = products[0];
 			if (!product) {
 				return res.redirect("/");
 			}
@@ -57,19 +60,19 @@ exports.postAddProduct = (req, res, next) => {
 	const productPrice = req.body.price;
 	const productImageUrl = req.body.imageUrl;
 	const productDescription = req.body.description;
-
-	Product.create({
-		title: productTitle,
-		price: productPrice,
-		imageUrl: productImageUrl,
-		description: productDescription,
-	})
-		.then((result) => redirect('/admin/products'))
+	req.user
+		.createProduct({
+			title: productTitle,
+			price: productPrice,
+			imageUrl: productImageUrl,
+			description: productDescription,
+		}) //metode e sequelize qe shtohet kur krijojme lidhje
+		.then((result) => res.redirect("/admin/products"))
 		.catch((err) => console.log(err)); //immeditally save it to the database
 };
 
 exports.getProducts = (req, res, next) => {
-	Product.findAll()
+	req.user.getProducts()
 		.then((products) => {
 			res.render("admin/products", {
 				prods: products,
