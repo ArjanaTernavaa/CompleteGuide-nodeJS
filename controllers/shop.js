@@ -2,26 +2,26 @@ const Product = require("../models/product");
 const Cart = require("../models/cart");
 
 exports.getProducts = (req, res, next) => {
-	Product.fetchAll()
-		.then(([rows, fieldData]) => {
+	Product.findAll()
+		.then((products) => {
 			res.render("shop/product-list", {
-				prods: rows,
-				pageTitle: "All products",
+				prods: products,
+				pageTitle: "Shop",
 				path: "/products",
-				hasProducts: rows.length > 0,
+				hasProducts: products.length > 0,
 				activeShop: true,
 				productCSS: true,
-			}); //e perdore the defualt templating engine, munesh me pass objekte qe masnej me mujt me i perdore ne template
+			});
 		})
 		.catch((err) => console.log(err));
 };
 
 exports.getProduct = (req, res, next) => {
 	const id = req.params.id;
-	Product.findById(id)
-		.then(([product]) => {
+	Product.findByPk(id)
+		.then((product) => {
 			res.render("shop/product-detail", {
-				product: product[0], //view pret nje object 
+				product: product, //view pret nje object
 				pageTitle: "Product Detail",
 				path: "/products",
 				activeShop: true,
@@ -31,14 +31,30 @@ exports.getProduct = (req, res, next) => {
 		.catch((err) => console.log(err));
 };
 
+//alternative
+// exports.getProduct = (req, res, next) => {
+// 	const id = req.params.id;
+// 	Product.findAll({ where : { id : id}})
+// 		.then((products) => {
+// 			res.render("shop/product-detail", {
+// 				product: products[0], //view pret nje object
+// 				pageTitle: "Product Detail",
+// 				path: "/products",
+// 				activeShop: true,
+// 				productCSS: true,
+// 			});
+// 		})
+// 		.catch((err) => console.log(err));
+// };
+
 exports.getIndex = (req, res, next) => {
-	Product.fetchAll()
-		.then(([rows, fieldData]) => {
+	Product.findAll()
+		.then((products) => {
 			res.render("shop/index", {
-				prods: rows,
+				prods: products,
 				pageTitle: "Shop",
 				path: "/",
-			}); //e perdore the default templating engine, munesh me pass objekte qe masnej me mujt me i perdore ne template
+			});
 		})
 		.catch((err) => console.log(err));
 };
