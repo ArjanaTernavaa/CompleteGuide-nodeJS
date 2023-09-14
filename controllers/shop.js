@@ -17,7 +17,7 @@ exports.getProducts = (req, res, next) => {
 
 exports.getProduct = (req, res, next) => {
 	const id = req.params.id;
-	Product.findByPk(id)
+	Product.findById(id)
 		.then((product) => {
 			res.render("shop/product-detail", {
 				product: product, //view pret nje object
@@ -29,22 +29,6 @@ exports.getProduct = (req, res, next) => {
 		})
 		.catch((err) => console.log(err));
 };
-
-//alternative
-// exports.getProduct = (req, res, next) => {
-// 	const id = req.params.id;
-// 	Product.findAll({ where : { id : id}})
-// 		.then((products) => {
-// 			res.render("shop/product-detail", {
-// 				product: products[0], //view pret nje object
-// 				pageTitle: "Product Detail",
-// 				path: "/products",
-// 				activeShop: true,
-// 				productCSS: true,
-// 			});
-// 		})
-// 		.catch((err) => console.log(err));
-// };
 
 exports.getIndex = (req, res, next) => {
 	Product.fetchAll()

@@ -15,10 +15,8 @@ exports.getEditProduct = (req, res, next) => {
 	}
 	const id = req.params.id;
 
-	req.user
-		.getProducts({ where: { id: id } }) //get products na kthen array kshtu qe neve na vyn veq elementi i pare
-		.then((products) => {
-			const product = products[0];
+	Product.findById(id) //get products na kthen array kshtu qe neve na vyn veq elementi i pare
+		.then((product) => {
 			if (!product) {
 				return res.redirect("/");
 			}
@@ -40,16 +38,8 @@ exports.postEditProduct = (req, res, next) => {
 	const productPrice = req.body.price;
 	const productImageUrl = req.body.imageUrl;
 	const productDescription = req.body.description;
-
-	Product.findByPk(productId)
-		.then((product) => {
-			product.title = productTitle;
-			product.price = productPrice;
-			product.imageUrl = productImageUrl;
-			product.description = productDescription;
-			return product.save(); //e merr produktin edhe e bon save
-		})
-		.then((result) => {
+	const product = new Product(productTitle, productPrice, productImageUrl, productDescription, productId);
+		product.save().then((result) => {
 			res.redirect("/admin/products");
 		})
 		.catch((err) => console.log(err));
@@ -64,17 +54,16 @@ exports.postAddProduct = (req, res, next) => {
 		productTitle,
 		productPrice,
 		productDescription,
-		productImageUrl
+		productImageUrl, null, req.user._id
 	);
 	product
 		.save()
-		.then((result) =>
-		 res.redirect("/admin/products"))
+		.then((result) => res.redirect("/admin/products"))
 		.catch((err) => console.log(err)); //immeditally save it to the database
 };
 
 exports.getProducts = (req, res, next) => {
-	req.user.getProducts()
+	Product.fetchAll()
 		.then((products) => {
 			res.render("admin/products", {
 				prods: products,
@@ -89,10 +78,7 @@ exports.getProducts = (req, res, next) => {
 
 exports.postDeleteProduct = (req, res, next) => {
 	const id = req.body.id;
-	Product.findByPk(id)
-		.then((product) => {
-			return product.destroy();
-		})
+	Product.deleteById(id)
 		.then(() => {
 			res.redirect("/admin/products");
 		})
