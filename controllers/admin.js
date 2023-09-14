@@ -60,14 +60,16 @@ exports.postAddProduct = (req, res, next) => {
 	const productPrice = req.body.price;
 	const productImageUrl = req.body.imageUrl;
 	const productDescription = req.body.description;
-	req.user
-		.createProduct({
-			title: productTitle,
-			price: productPrice,
-			imageUrl: productImageUrl,
-			description: productDescription,
-		}) //metode e sequelize qe shtohet kur krijojme lidhje
-		.then((result) => res.redirect("/admin/products"))
+	const product = new Product(
+		productTitle,
+		productPrice,
+		productDescription,
+		productImageUrl
+	);
+	product
+		.save()
+		.then((result) =>
+		 res.redirect("/admin/products"))
 		.catch((err) => console.log(err)); //immeditally save it to the database
 };
 
