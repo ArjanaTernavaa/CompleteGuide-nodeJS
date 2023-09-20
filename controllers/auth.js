@@ -11,11 +11,17 @@ const bcrypt = require("bcryptjs");
 
 exports.getLogin = (req, res, next) => {
 	// const isLoggedIn = req.get("Cookie").split(";")[1].trim().split("=")[1];
+	let message = req.flash("error");
+	if (message.length > 0) {
+		message = message[0];
+	} else {
+		message = null;
+	}
 	console.log(req.session.isLoggedIn);
 	res.render("auth/login", {
 		path: "/login",
 		pageTitle: "Login page",
-		isAuthenticated: false,
+		errorMessage: message,
 	});
 };
 
@@ -25,6 +31,7 @@ module.exports.postLogin = (req, res, next) => {
 	User.findOne({ email: email })
 		.then((user) => {
 			if (!user) {
+				req.flash("error", "Invalid email or password.");
 				return res.redirect("/login");
 			}
 			bcrypt
@@ -57,10 +64,17 @@ exports.postLogout = (req, res, next) => {
 };
 
 exports.getSignup = (req, res, next) => {
+	let message = req.flash("error");
+	if (message.length > 0) {
+		message = message[0];
+	} else {
+		message = null;
+	}
 	res.render("auth/signup", {
 		pageTitle: "Signup",
 		path: "/signup",
 		isAuthenticated: false,
+		errorMessage: message
 	});
 };
 
@@ -72,6 +86,7 @@ exports.postSignup = (req, res, next) => {
 	User.findOne({ email: email })
 		.then((userDoc) => {
 			if (userDoc) {
+				req.flash("error", "Email exists already, please pick a different one.");
 				return res.redirect("/signup");
 			} else {
 				return bcrypt.hash(password, 12).then((hashedPassword) => {
