@@ -14,65 +14,36 @@ const sendgridTransport = require("nodemailer-sendgrid-transport");
 require("dotenv").config();
 const crypto = require("crypto");
 
-const transporter = nodemailer.createTransport(
-	sendgridTransport({
-		auth: {
-			api_key: process.env.SENDGRID_API_KEY,
-		},
-	})
-); //returns a configuration
+// const transporter = nodemailer.createTransport(
+// 	sendgridTransport({
+// 		auth: {
+// 			api_key: process.env.SENDGRID_API_KEY,
+// 		},
+// 	})
+// ); //returns a configuration
+
+const transporter = nodemailer.createTransport({
+	service: "gmail",
+	host: process.env.MAIL_HOST,
+	port: process.env.MAIL_PORT,
+	auth: {
+		user: process.env.MAIL_USER,
+		pass: process.env.MAIL_PASSWORD,
+	},
+	debug: true, // Enable debugging
+});
 
 exports.getLogin = (req, res, next) => {
-	// const isLoggedIn = req.get("Cookie").split(";")[1].trim().split("=")[1];
 	let message = req.flash("error");
 	if (message.length > 0) {
 		message = message[0];
 	} else {
 		message = null;
 	}
-	console.log(req.session.isLoggedIn);
 	res.render("auth/login", {
 		path: "/login",
-		pageTitle: "Login page",
+		pageTitle: "Login",
 		errorMessage: message,
-	});
-};
-
-module.exports.postLogin = (req, res, next) => {
-	const email = req.body.email;
-	const password = req.body.password;
-	User.findOne({ email: email })
-		.then((user) => {
-			if (!user) {
-				req.flash("error", "Invalid email or password.");
-				return res.redirect("/login");
-			}
-			bcrypt
-				.compare(password, user.password) // compare kthen true ose false, edhe nese passwords dont match prape nuk hyn te catch block se nuk eshte error
-				.then((doMatch) => {
-					if (doMatch) {
-						req.session.user = user;
-						req.session.isLoggedIn = true;
-						return req.session.save((err) => {
-							if (err) console.log(err);
-							res.redirect("/");
-						});
-					} else {
-						res.redirect("/login");
-					}
-				})
-				.catch((err) => {
-					console.log(err);
-					res.redirect("/login");
-				});
-		})
-		.catch((err) => console.log(err));
-};
-
-exports.postLogout = (req, res, next) => {
-	req.session.destroy((err) => {
-		console.log(err);
-		res.redirect("/");
 	});
 };
 
@@ -84,50 +55,92 @@ exports.getSignup = (req, res, next) => {
 		message = null;
 	}
 	res.render("auth/signup", {
-		pageTitle: "Signup",
 		path: "/signup",
-		isAuthenticated: false,
+		pageTitle: "Signup",
 		errorMessage: message,
 	});
+};
+
+exports.postLogin = (req, res, next) => {
+	const email = req.body.email;
+	const password = req.body.password;
+	User.findOne({ email: email })
+		.then((user) => {
+			if (!user) {
+				req.flash("error", "Invalid email or password.");
+				return res.redirect("/login");
+			}
+			bcrypt
+				.compare(password, user.password)
+				.then((doMatch) => {
+					if (doMatch) {
+						req.session.isLoggedIn = true;
+						req.session.user = user;
+						return req.session.save((err) => {
+							console.log(err);
+							res.redirect("/");
+						});
+					}
+					req.flash("error", "Invalid email or password.");
+					res.redirect("/login");
+				})
+				.catch((err) => {
+					console.log(err);
+					res.redirect("/login");
+				});
+		})
+		.catch((err) => console.log(err));
 };
 
 exports.postSignup = (req, res, next) => {
 	const email = req.body.email;
 	const password = req.body.password;
 	const confirmPassword = req.body.confirmPassword;
-
 	User.findOne({ email: email })
 		.then((userDoc) => {
 			if (userDoc) {
 				req.flash(
 					"error",
-					"Email exists already, please pick a different one."
+					"E-Mail exists already, please pick a different one."
 				);
 				return res.redirect("/signup");
-			} else {
-				return bcrypt.hash(password, 12).then((hashedPassword) => {
+			}
+			return bcrypt
+				.hash(password, 12)
+				.then((hashedPassword) => {
 					const user = new User({
 						email: email,
 						password: hashedPassword,
 						cart: { items: [] },
 					});
 					return user.save();
+				})
+				.then((result) => {
+					res.redirect("/login");
+					return transporter.sendMail({
+						to: email,
+						from: process.env.MAIL_USER,
+						subject: "Signup succeeded!",
+						html: "<h1>You successfully signed up!</h1>",
+					});
+				})
+				.catch((err) => {
+					console.log(err);
 				});
-			}
 		})
-		.then(() => {
-			res.redirect("/login");
-			return transporter.sendMail({
-				to: email,
-				from: "shop@noreply.com",
-				subject: "Account created successfully",
-				html: "<h1>Account created successfully</h1",
-			});
-		})
-		.catch((err) => console.log(err));
+		.catch((err) => {
+			console.log(err);
+		});
 };
 
-exports.getReset = (req, res) => {
+exports.postLogout = (req, res, next) => {
+	req.session.destroy((err) => {
+		console.log(err);
+		res.redirect("/");
+	});
+};
+
+exports.getReset = (req, res, next) => {
 	let message = req.flash("error");
 	if (message.length > 0) {
 		message = message[0];
@@ -135,13 +148,13 @@ exports.getReset = (req, res) => {
 		message = null;
 	}
 	res.render("auth/reset", {
-		pageTitle: "Reset Password",
 		path: "/reset",
+		pageTitle: "Reset Password",
 		errorMessage: message,
 	});
 };
 
-exports.postReset = (req, res) => {
+exports.postReset = (req, res, next) => {
 	crypto.randomBytes(32, (err, buffer) => {
 		if (err) {
 			console.log(err);
@@ -151,25 +164,82 @@ exports.postReset = (req, res) => {
 		User.findOne({ email: req.body.email })
 			.then((user) => {
 				if (!user) {
-					req.flash("error", "No account with that email found");
+					req.flash("error", "No account with that email found.");
 					return res.redirect("/reset");
 				}
 				user.resetToken = token;
 				user.resetTokenExpiration = Date.now() + 3600000;
 				return user.save();
 			})
-			.then(result => {
+			.then((result) => {
 				res.redirect("/");
-				return transporter.sendMail({
+				transporter.sendMail({
 					to: req.body.email,
-					from: "shop@noreply.com",
-					subject: "Password Reset",
-					html: `<p>You requested a password reset</p>
-					<p>Click this <a href="http://localhost:3000/reset/${token}">Link</a> to set a new password`,
+					from: process.env.MAIL_USER,
+					subject: "Password reset",
+					html: ` 
+            <p>You requested a password reset</p>
+            <p>Click this <a href="http://localhost:3002/reset/${token}">link</a> to set a new password.</p>
+          `,
 				});
 			})
 			.catch((err) => {
 				console.log(err);
 			});
 	});
+};
+
+exports.getNewPassword = (req, res, next) => {
+	const token = req.params.token;
+	User.findOne({
+		resetToken: token,
+		resetTokenExpiration: { $gt: Date.now() },
+	})
+		.then((user) => {
+			let message = req.flash("error");
+			if (message.length > 0) {
+				message = message[0];
+			} else {
+				message = null;
+			}
+			res.render("auth/new-password", {
+				path: "/new-password",
+				pageTitle: "New Password",
+				errorMessage: message,
+				userId: user._id.toString(),
+				passwordToken: token,
+			});
+		})
+		.catch((err) => {
+			console.log(err);
+		});
+};
+
+exports.postNewPassword = (req, res, next) => {
+	const newPassword = req.body.password;
+	const userId = req.body.userId;
+	const passwordToken = req.body.passwordToken;
+	let resetUser;
+
+	User.findOne({
+		resetToken: passwordToken,
+		resetTokenExpiration: { $gt: Date.now() },
+		_id: userId,
+	})
+		.then((user) => {
+			resetUser = user;
+			return bcrypt.hash(newPassword, 12);
+		})
+		.then((hashedPassword) => {
+			resetUser.password = hashedPassword;
+			resetUser.resetToken = undefined;
+			resetUser.resetTokenExpiration = undefined;
+			return resetUser.save();
+		})
+		.then((result) => {
+			res.redirect("/login");
+		})
+		.catch((err) => {
+			console.log(err);
+		});
 };
