@@ -13,6 +13,7 @@ const nodemailer = require("nodemailer");
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 require("dotenv").config();
 const crypto = require("crypto");
+const { validationResult } = require("express-validator");
 
 // const transporter = nodemailer.createTransport(
 // 	sendgridTransport({
@@ -25,7 +26,7 @@ const crypto = require("crypto");
 const transporter = nodemailer.createTransport({
 	service: "gmail",
 	host: process.env.MAIL_HOST,
-	port: process.env.MAIL_PORT,
+	port: process.env.MAIL_PORT,	
 	auth: {
 		user: process.env.MAIL_USER,
 		pass: process.env.MAIL_PASSWORD,
@@ -96,37 +97,33 @@ exports.postSignup = (req, res, next) => {
 	const email = req.body.email;
 	const password = req.body.password;
 	const confirmPassword = req.body.confirmPassword;
-	User.findOne({ email: email })
-		.then((userDoc) => {
-			if (userDoc) {
-				req.flash(
-					"error",
-					"E-Mail exists already, please pick a different one."
-				);
-				return res.redirect("/signup");
-			}
-			return bcrypt
-				.hash(password, 12)
-				.then((hashedPassword) => {
-					const user = new User({
-						email: email,
-						password: hashedPassword,
-						cart: { items: [] },
-					});
-					return user.save();
-				})
-				.then((result) => {
-					res.redirect("/login");
-					return transporter.sendMail({
-						to: email,
-						from: process.env.MAIL_USER,
-						subject: "Signup succeeded!",
-						html: "<h1>You successfully signed up!</h1>",
-					});
-				})
-				.catch((err) => {
-					console.log(err);
-				});
+	const errors = validationResult(req);
+	if (!errors.isEmpty()) {
+		console.log(errors.array());
+		return res.status(422).render("auth/signup", {
+			path: "/signup",
+			pageTitle: "Signup",
+			errorMessage: errors.array()[0].msg,
+		});
+	}
+	bcrypt
+		.hash(password, 12)
+		.then((hashedPassword) => {
+			const user = new User({
+				email: email,
+				password: hashedPassword,
+				cart: { items: [] },
+			});
+			return user.save();
+		})
+		.then((result) => {
+			res.redirect("/login");
+			return transporter.sendMail({
+				to: email,
+				from: process.env.MAIL_USER,
+				subject: "Signup succeeded!",
+				html: "<h1>You successfully signed up!</h1>",
+			});
 		})
 		.catch((err) => {
 			console.log(err);
