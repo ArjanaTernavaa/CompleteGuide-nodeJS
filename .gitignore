@@ -1,4 +1,5 @@
-shenimet.txt
+.env
 node_modules
 notNeededAnymore
-.env
+shenimet.txt
+error-playground.js
